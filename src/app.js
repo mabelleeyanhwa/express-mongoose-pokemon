@@ -1,10 +1,23 @@
 const express = require("express");
 const app = express();
+const cookieParser = require("cookie-parser");
+const cors = require("cors");
+
+const corsOptions = {
+  credentials: true,
+  allowedHeaders: "content-type",
+  origin: "http://localhost:3001", // for the frontend server
+};
+
+app.use(cors(corsOptions));
+app.use(cookieParser());
 
 app.use(express.json());
 
-const pokemonsRouter = require("./routes/pokemons.route.js");
+const pokemonsRouter = require("./routes/pokemons.route");
+const trainersRouter = require("./routes/trainers.route");
 app.use("/pokemons", pokemonsRouter);
+app.use("/trainers", trainersRouter);
 
 app.get("/", (req, res) => {
   res.json({
@@ -18,8 +31,9 @@ app.get("/", (req, res) => {
 });
 
 app.use((err, req, res, next) => {
-  res.status(err.code || 500);
-  if (err.code) {
+  res.status(err.statusCode || 500);
+  console.log(err);
+  if (err.statusCode) {
     res.send({ error: err.message });
   } else {
     res.send({ error: "internal server error" });
