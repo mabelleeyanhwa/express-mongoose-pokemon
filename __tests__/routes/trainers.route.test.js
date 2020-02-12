@@ -42,6 +42,8 @@ describe("trainers", () => {
       },
     ];
     await Trainer.create(TrainerData);
+    jest.spyOn(console, "error");
+    console.error.mockReturnValue({});
   });
 
   afterEach(async () => {
@@ -56,12 +58,24 @@ describe("trainers", () => {
         password: "123456789",
       };
       const { body: trainer } = await request(app)
-        .post("/trainers")
+        .post("/trainers/register")
         .send(expectedTrainer)
         .expect(201);
 
       expect(trainer.username).toBe(expectedTrainer.username);
       expect(trainer.password).not.toBe(expectedTrainer.password);
+    });
+
+    it("POST should not add a new trainer when password less than 8 ", async () => {
+      const wrongTrainer = {
+        username: "ash3",
+        password: "1234567",
+      };
+      const { body: error } = await request(app)
+        .post("/trainers/register")
+        .send(wrongTrainer)
+        .expect(400);
+      expect(error.error).toContain("validation failed");
     });
   });
 
@@ -76,6 +90,8 @@ describe("trainers", () => {
         .set("Cookie", "token=valid-token")
         .expect(200);
 
+      expect(jwt.verify).toHaveBeenCalledTimes(1);
+
       expect(trainers[0]).toMatchObject(expectedTrainer);
     });
 
@@ -88,7 +104,30 @@ describe("trainers", () => {
         .get(`/trainers/ash2`)
         .set("Cookie", "token=valid-token")
         .expect(403);
+      expect(jwt.verify).toHaveBeenCalledTimes(1);
       expect(error).toEqual({ error: "Incorrect trainer!" });
+    });
+
+    it("GET should deny access when no token is provided", async () => {
+      const { body: error } = await request(app)
+        .get(`/trainers/ash2`)
+        .expect(401);
+      expect(jwt.verify).not.toHaveBeenCalled();
+      expect(error).toEqual({ error: "You are not authorized" });
+    });
+    it("GET should deny access when token is invalid", async () => {
+      const errorMessage = "your token is invalid";
+      jwt.verify.mockImplementationOnce(() => {
+        throw new Error(errorMessage);
+      });
+
+      const { body: error } = await request(app)
+        .get(`/trainers/ash2`)
+        .set("Cookie", "token=invalid-token")
+        .expect(401);
+
+      expect(jwt.verify).toHaveBeenCalledTimes(1);
+      expect(error.error).toEqual(errorMessage);
     });
   });
 

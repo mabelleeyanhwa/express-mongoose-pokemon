@@ -7,7 +7,7 @@ const Trainer = require("../models/trainer.model");
 
 const { protectRoute } = require("../middlewares/auth");
 
-router.post("/", async (req, res, next) => {
+router.post("/register", async (req, res, next) => {
   try {
     const trainer = new Trainer(req.body);
     await Trainer.init();
@@ -82,6 +82,8 @@ router.post("/login", async (req, res, next) => {
 router.use((err, req, res, next) => {
   if (err.name === "ValidationError") {
     err.statusCode = 400;
+  } else if (err.name === "MongoError" && err.code === 11000) {
+    err.statusCode = 422;
   }
   next(err);
 });
