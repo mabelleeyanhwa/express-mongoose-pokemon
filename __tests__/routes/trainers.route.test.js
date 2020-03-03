@@ -42,8 +42,8 @@ describe("trainers", () => {
       },
     ];
     await Trainer.create(TrainerData);
-    jest.spyOn(console, "error");
-    console.error.mockReturnValue({});
+    //jest.spyOn(console, "error");
+    //console.error.mockReturnValue({});
   });
 
   afterEach(async () => {
@@ -51,7 +51,7 @@ describe("trainers", () => {
     await Trainer.deleteMany();
   });
 
-  describe("/trainers", () => {
+  describe("/trainers/register", () => {
     it("POST should add a new trainer", async () => {
       const expectedTrainer = {
         username: "ash3",

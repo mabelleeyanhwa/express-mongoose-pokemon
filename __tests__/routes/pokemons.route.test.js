@@ -79,11 +79,11 @@ describe("pokemons", () => {
       const { body: actualPokemons } = await request(app)
         .get("/pokemons")
         .expect(200);
-      //actualPokemons.sort((a, b) => a.id > b.id);
+      actualPokemons.sort((a, b) => a.id > b.id);
       expect(actualPokemons).toMatchObject(expectedPokemonData);
     });
 
-    it("POST should add a new pokemon", async () => {
+    it("POST should add a new pokemon when logged in", async () => {
       jwt.verify.mockReturnValueOnce({});
 
       const expectedPokemon = {
